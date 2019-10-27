@@ -8,20 +8,26 @@ const parser = require('body-parser')
 const request = require('request')
 const app = express()
 
-app.use(parser.json())
+request(encodeURI(`https://translate.yandex.net/api/v1.5/tr.json/translate?key=${translator_token}&text=Привет&lang=ru-en`), (error, response, body) => {
+ console.log(response.body)
+ console.log(typeof(response.body))
+})
 
+app.use(parser.json())
 app.post('/', (req, res) => {
   let msg = req.body
   console.log(msg)
   if (msg.type == 'message_new') {
     res.send('ok')
     let ri = parseInt(Math.random() * 1000000)
-    let text = translate.translate(msg.object.text, 'ru')
-    request(`https://api.vk.com/method/messages.send?user_id=${msg.object.from_id}&message=${text}!&access_token=${token}&v=${v}&random_id=${ri}`, (error, response, body) => {
-    console.log('error:', error)
-  })}
-})
-
+    request(encodeURI(`https://translate.yandex.net/api/v1.5/tr.json/translate?key=${translator_token}&text=${msg.object.text}&lang=ru-en`), (error, response, body) => {
+      console.log('Yandex res ', body)
+      console.log(typeof(body))
+      let bot_msg = body.slice(36, body.length - 3)
+      console.log(bot_msg)
+      request(`https://api.vk.com/method/messages.send?user_id=${msg.object.from_id}&message=${bot_msg}!&access_token=${token}&v=${v}&random_id=${ri}`, (error, response, body) => {
+      console.log('error:', error)
+    })})}})
 app.get('/', (req, res) => res.send('Works!!!'))
 
 app.listen(process.env.PORT || 5000, () => console.log('Listening!'))
